@@ -1,39 +1,38 @@
-buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.1'
-    }
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
-apply plugin: 'com.github.johnrengelman.shadow'
-apply plugin: 'java'
 sourceCompatibility = 1.8
 
 repositories {
-    jcenter()
+    mavenCentral()
 }
 
 dependencies {
-    compile 'com.conversantmedia:disruptor:1.2.10'
-    compile files('lib/ojdbc14.jar')
+    implementation 'com.conversantmedia:disruptor:1.2.10'
+    implementation files('lib/ojdbc14.jar')
 }
 
-shadowJar {
-   mergeServiceFiles()
-   baseName = 'orauld'
-   classifier = null
-}
-
-task copyProperties(type: Copy) {
+tasks.register('copyProperties', Copy) {
     from('src/main/java') {
         include '**/*.properties'
     }
     into 'build/classes/java/main'
 }
 
+shadowJar {
+    dependsOn copyProperties
+    mergeServiceFiles()
+    archiveBaseName = 'orauld'
+    archiveClassifier = ''
+
+    // 显式包含ojdbc jar文件
+    from zipTree('lib/ojdbc14.jar')
+}
+
 jar {
+    dependsOn copyProperties
     manifest {
         attributes 'Main-Class': 'github.peihanw.orauld.OrauldMain'
     }

@@ -12,3 +12,4 @@ nbproject/
 test/
 bin/
 /.gradle/
+.idea
