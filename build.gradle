@@ -3,15 +3,17 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
-sourceCompatibility = 1.8
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    implementation 'com.conversantmedia:disruptor:1.2.10'
+    implementation group: 'com.conversantmedia', name: 'disruptor', version: '1.2.10', classifier: 'jdk7'
     implementation files('lib/ojdbc14.jar')
+    implementation 'joda-time:joda-time:2.10.10'
 }
 
 tasks.register('copyProperties', Copy) {

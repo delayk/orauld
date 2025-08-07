@@ -10,12 +10,6 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.security.MessageDigest;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -24,6 +18,13 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.DateTimeFormatterBuilder;
+import org.joda.time.format.DateTimeParser;
 
 import static github.peihanw.ut.Stdout.*;
 
@@ -74,20 +75,20 @@ public class PubMethod {
 	public static final Pattern _ExpTMFMT8 = Pattern.compile("^[0-9]{8}");
 	public static final Pattern _ExpTMFMT6 = Pattern.compile("^[0-9]{6}");
 
-	public static final DateTimeFormatter _TMDF23 = DateTimeFormatter.ofPattern(_TMFMT23);
-	public static final DateTimeFormatter _TMDF19 = DateTimeFormatter.ofPattern(_TMFMT19);
-	public static final DateTimeFormatter _TMDF18 = DateTimeFormatter.ofPattern(_TMFMT18);
-	public static final DateTimeFormatter _TMDF17 = DateTimeFormatter.ofPattern(_TMFMT17);
-	public static final DateTimeFormatter _TMDF16 = DateTimeFormatter.ofPattern(_TMFMT16);
-	public static final DateTimeFormatter _TMDF14 = DateTimeFormatter.ofPattern(_TMFMT14);
-	public static final DateTimeFormatter _TMDF12 = DateTimeFormatter.ofPattern(_TMFMT12);
-	public static final DateTimeFormatter _DTDF10 = DateTimeFormatter.ofPattern(_DTFMT10);
-	public static final DateTimeFormatter _DTDF8 = DateTimeFormatter.ofPattern(_DTFMT8);
-	public static final DateTimeFormatter _DTDF6 = DateTimeFormatter.ofPattern(_DTFMT6);
+	public static final DateTimeFormatter _TMDF23 = DateTimeFormat.forPattern(_TMFMT23);
+	public static final DateTimeFormatter _TMDF19 = DateTimeFormat.forPattern(_TMFMT19);
+	public static final DateTimeFormatter _TMDF18 = DateTimeFormat.forPattern(_TMFMT18);
+	public static final DateTimeFormatter _TMDF17 = DateTimeFormat.forPattern(_TMFMT17);
+	public static final DateTimeFormatter _TMDF16 = DateTimeFormat.forPattern(_TMFMT16);
+	public static final DateTimeFormatter _TMDF14 = DateTimeFormat.forPattern(_TMFMT14);
+	public static final DateTimeFormatter _TMDF12 = DateTimeFormat.forPattern(_TMFMT12);
+	public static final DateTimeFormatter _DTDF10 = DateTimeFormat.forPattern(_DTFMT10);
+	public static final DateTimeFormatter _DTDF8 = DateTimeFormat.forPattern(_DTFMT8);
+	public static final DateTimeFormatter _DTDF6 = DateTimeFormat.forPattern(_DTFMT6);
 
-	public static final ZoneId _LocTZ = ZoneId.systemDefault();
+	public static final DateTimeZone _LocTZ = DateTimeZone.getDefault();
 	public static final long _UNIX_EPOCH_MILLIS = 0;
-	public static final LocalDateTime _UNIX_EPOCH_DATE = LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC);
+	public static final DateTime _UNIX_EPOCH_DATE = new DateTime(0, DateTimeZone.UTC);
 
 	public static final Pattern _ExpIPv4 = Pattern
 			.compile("^(([0-1]?[0-9]{1,2}\\.)|(2[0-4][0-9]\\.)|(25[0-5]\\.)){3}" + "(([0-1]?[0-9]{1,2})|(2[0-4][0-9])|(25[0-5]))$");
@@ -151,134 +152,134 @@ public class PubMethod {
 	}
 
 	public static long Str2Long(String time_str, TimeStrFmt fmt) {
-		return Str2Time(time_str, fmt).atZone(_LocTZ).toInstant().toEpochMilli();
+		return Str2Time(time_str, fmt).getMillis();
 	}
 
-	public static LocalDateTime Str2Time(String time_str, TimeStrFmt fmt) {
-		LocalDateTime rv_ = _UNIX_EPOCH_DATE;
+	public static DateTime Str2Time(String time_str, TimeStrFmt fmt) {
+		DateTime rv_ = _UNIX_EPOCH_DATE;
 		DateTimeFormatter dtf_ = null;
 		String time_str_ = time_str;
 		switch (fmt) {
-		case Fmt23:
-			dtf_ = _TMDF23;
-			if (time_str.length() > 23) {
-				time_str_ = time_str.substring(0, 23);
-			}
-			if (time_str_.length() > 10 && time_str_.charAt(10) != ' ') {
-				time_str_ = time_str_.substring(0, 9) + " " + time_str_.substring(11);
-			}
-			break;
-		case Fmt19:
-			dtf_ = _TMDF19;
-			if (time_str.length() > 19) {
-				time_str_ = time_str.substring(0, 19);
-			}
-			break;
-		case Fmt18:
-			dtf_ = _TMDF18;
-			if (time_str.length() > 18) {
-				time_str_ = time_str.substring(0, 18);
-			}
-			break;
-		case Fmt17:
-			dtf_ = _TMDF17;
-			if (time_str.length() > 17) {
-				time_str_ = time_str.substring(0, 17);
-			}
-			break;
-		case Fmt16:
-			dtf_ = _TMDF16;
-			if (time_str.length() > 16) {
-				time_str_ = time_str.substring(0, 16);
-			}
-			break;
-		case Fmt14:
-			dtf_ = _TMDF14;
-			if (time_str.length() > 14) {
-				time_str_ = time_str.substring(0, 14);
-			}
-			break;
-		case Fmt12:
-			dtf_ = _TMDF12;
-			if (time_str.length() > 12) {
-				time_str_ = time_str.substring(0, 12);
-			}
-			break;
-		case Fmt10:
-			dtf_ = _DTDF10;
-			if (time_str.length() > 10) {
-				time_str_ = time_str.substring(0, 10);
-			}
-			break;
-		case Fmt8:
-			dtf_ = _DTDF8;
-			if (time_str.length() > 8) {
-				time_str_ = time_str.substring(0, 8);
-			}
-			break;
-		case Fmt6:
-			dtf_ = _DTDF6;
-			if (time_str.length() > 6) {
-				time_str_ = time_str.substring(0, 6);
-			}
-			break;
-		default:
-			P(WRN, "ukn fmt [%s], regard as Fmt14", fmt);
-			dtf_ = _TMDF14;
-			if (time_str.length() > 14) {
-				time_str_ = time_str.substring(0, 14);
-			}
-			break;
+			case Fmt23:
+				dtf_ = _TMDF23;
+				if (time_str.length() > 23) {
+					time_str_ = time_str.substring(0, 23);
+				}
+				if (time_str_.length() > 10 && time_str_.charAt(10) != ' ') {
+					time_str_ = time_str_.substring(0, 9) + " " + time_str_.substring(11);
+				}
+				break;
+			case Fmt19:
+				dtf_ = _TMDF19;
+				if (time_str.length() > 19) {
+					time_str_ = time_str.substring(0, 19);
+				}
+				break;
+			case Fmt18:
+				dtf_ = _TMDF18;
+				if (time_str.length() > 18) {
+					time_str_ = time_str.substring(0, 18);
+				}
+				break;
+			case Fmt17:
+				dtf_ = _TMDF17;
+				if (time_str.length() > 17) {
+					time_str_ = time_str.substring(0, 17);
+				}
+				break;
+			case Fmt16:
+				dtf_ = _TMDF16;
+				if (time_str.length() > 16) {
+					time_str_ = time_str.substring(0, 16);
+				}
+				break;
+			case Fmt14:
+				dtf_ = _TMDF14;
+				if (time_str.length() > 14) {
+					time_str_ = time_str.substring(0, 14);
+				}
+				break;
+			case Fmt12:
+				dtf_ = _TMDF12;
+				if (time_str.length() > 12) {
+					time_str_ = time_str.substring(0, 12);
+				}
+				break;
+			case Fmt10:
+				dtf_ = _DTDF10;
+				if (time_str.length() > 10) {
+					time_str_ = time_str.substring(0, 10);
+				}
+				break;
+			case Fmt8:
+				dtf_ = _DTDF8;
+				if (time_str.length() > 8) {
+					time_str_ = time_str.substring(0, 8);
+				}
+				break;
+			case Fmt6:
+				dtf_ = _DTDF6;
+				if (time_str.length() > 6) {
+					time_str_ = time_str.substring(0, 6);
+				}
+				break;
+			default:
+				P(WRN, "ukn fmt [%s], regard as Fmt14", fmt);
+				dtf_ = _TMDF14;
+				if (time_str.length() > 14) {
+					time_str_ = time_str.substring(0, 14);
+				}
+				break;
 		}
 		try {
-			LocalDateTime dt_ = LocalDateTime.parse(time_str_, dtf_);
+			DateTime dt_ = dtf_.parseDateTime(time_str_);
 			rv_ = dt_;
-		} catch (DateTimeParseException e) {
+		} catch (IllegalArgumentException e) {
 			P(ERO, e, "parse [%s,%s] exception, regard as _UNIX_EPOCH", time_str, fmt);
 		}
 		return rv_;
 	}
 
 	public static String Long2Str(long tm, TimeStrFmt fmt) {
-		return Time2Str(LocalDateTime.ofInstant(Instant.ofEpochMilli(tm), _LocTZ), fmt);
+		return Time2Str(new DateTime(tm, _LocTZ), fmt);
 	}
 
-	public static String Time2Str(LocalDateTime tm, TimeStrFmt fmt) {
+	public static String Time2Str(DateTime tm, TimeStrFmt fmt) {
 		DateTimeFormatter dtf_ = null;
 		switch (fmt) {
-		case Fmt23:
-			dtf_ = _TMDF23;
-			break;
-		case Fmt19:
-			dtf_ = _TMDF19;
-			break;
-		case Fmt18:
-			dtf_ = _TMDF18;
-			break;
-		case Fmt17:
-			dtf_ = _TMDF17;
-			break;
-		case Fmt14:
-			dtf_ = _TMDF14;
-			break;
-		case Fmt12:
-			dtf_ = _TMDF12;
-			break;
-		case Fmt10:
-			dtf_ = _DTDF10;
-			break;
-		case Fmt8:
-			dtf_ = _DTDF8;
-			break;
-		case Fmt6:
-			dtf_ = _DTDF6;
-			break;
-		default:
-			P(WRN, "ukn fmt [%s], regard as Fmt14", fmt);
-			dtf_ = _TMDF14;
-			break;
+			case Fmt23:
+				dtf_ = _TMDF23;
+				break;
+			case Fmt19:
+				dtf_ = _TMDF19;
+				break;
+			case Fmt18:
+				dtf_ = _TMDF18;
+				break;
+			case Fmt17:
+				dtf_ = _TMDF17;
+				break;
+			case Fmt14:
+				dtf_ = _TMDF14;
+				break;
+			case Fmt12:
+				dtf_ = _TMDF12;
+				break;
+			case Fmt10:
+				dtf_ = _DTDF10;
+				break;
+			case Fmt8:
+				dtf_ = _DTDF8;
+				break;
+			case Fmt6:
+				dtf_ = _DTDF6;
+				break;
+			default:
+				P(WRN, "ukn fmt [%s], regard as Fmt14", fmt);
+				dtf_ = _TMDF14;
+				break;
 		}
-		return dtf_.format(tm);
+		return tm.toString(dtf_);
 	}
 
 	public static String RandomStr(int str_len) {
