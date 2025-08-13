@@ -18,8 +18,11 @@ public class OrauldCmdline {
 	public String _loginStr;
 	public String _loginCfg;
 	public String _querySql;
+	// 结果文件
 	public String _bcpFnm;
 	public String _ctlFnm;
+	// 日志文件
+	public String _logFile;
 	public String _delimiter;
 	public String _eorStr;
 	public int _wrkNum = 2;
@@ -47,7 +50,7 @@ public class OrauldCmdline {
 	}
 
 	public void init(String[] args) {
-		Getopt g = new Getopt("sqluld", args, ":l:L:F:q:o:O:d:D:c:w:s:v:ht");
+		Getopt g = new Getopt("sqluld", args, ":l:L:F:q:o:O:r:d:D:c:w:s:v:ht");
 		int c;
 		while ((c = g.getopt()) != -1) {
 			switch (c) {
@@ -69,6 +72,9 @@ public class OrauldCmdline {
 				break;
 			case 'O':
 				_ctlFnm = g.getOptarg();
+				break;
+			case 'r':
+				_logFile = g.getOptarg();
 				break;
 			case 'd':
 				_delimiter = g.getOptarg();
@@ -148,6 +154,7 @@ public class OrauldCmdline {
 		P(DBG, "query_sql   [%s]", _querySql);
 		P(DBG, "bcp_fnm     [%s]", _bcpFnm);
 		P(DBG, "ctl_fnm     [%s]", _ctlFnm);
+		P(DBG, "log_file     [%s]", _logFile);
 		P(DBG, "delimiter   [%s]", _delimiter);
 		P(DBG, "eor_str     [%s]", _eorStr);
 		P(DBG, "charset     [%s]", _charset);
@@ -270,6 +277,8 @@ public class OrauldCmdline {
 		sb_.append("     : -o : bcp_fnm --> bulk copy output file name");
 		sb_.append(newline_);
 		sb_.append("     : -d : default field delimiter is pipe char '|'");
+		sb_.append(newline_);
+		sb_.append("     : -r : log file path, default is stdout");
 		sb_.append(newline_);
 		sb_.append("     : -D : default record delimiter is %n, should be used for dealing with embeded CR/LF");
 		sb_.append(newline_);

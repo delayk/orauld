@@ -1,49 +1,57 @@
 package github.peihanw.orauld;
 
-import static github.peihanw.ut.Stdout.*;
+import com.conversantmedia.util.concurrent.DisruptorBlockingQueue;
+import github.peihanw.ut.AppTicker;
+import github.peihanw.ut.PubMethod;
 
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.util.concurrent.BlockingQueue;
 
-import com.conversantmedia.util.concurrent.DisruptorBlockingQueue;
-
-import github.peihanw.ut.AppTicker;
+import static github.peihanw.ut.Stdout.*;
 
 public class OrauldMain {
 
-	private static BlockingQueue<OrauldTuple>[] _UpQueues;
-	private static BlockingQueue<OrauldTuple>[] _DnQueues;
-	private static OrauldWrkRunnable[] _WrkRunnables;
-	private static Thread[] _WrkThreads;
-	private static OrauldDmpRunnable _DmpRunnable;
-	private static Thread _DmpThread;
-
-	public static void main(String[] args) throws Exception {
+    /**
+	 * 新增的公共入口方法，供外部应用调用
+	 * @param args 命令行参数
+	 * @return 退出码
+	 * @throws Exception 如果执行过程中发生异常
+	 */
+	public static int run(String[] args) throws Exception {
 		try {
-			_main(args);
+			return _mainInternal(args);
 		} catch (Exception e) {
 			P(ERO, e, "encounter exception");
-			System.exit(OrauldConst.EXIT_CODE_4_EXCEPTION);
+			return OrauldConst.EXIT_CODE_4_EXCEPTION;
 		}
 	}
 
+	/**
+	 * 内部执行逻辑，返回退出码而不是直接退出JVM
+	 * @param args 命令行参数
+	 * @return 退出码
+	 * @throws Exception 如果执行过程中发生异常
+	 */
 	@SuppressWarnings("unchecked")
-	private static void _main(String[] args) throws Exception {
+	private static int _mainInternal(String[] args) throws Exception {
 		OrauldCmdline cmdline_ = OrauldCmdline.GetInstance();
 		cmdline_.init(args);
 		AppTicker ticker_ = new AppTicker();
 		P(INF, "cmdline parsed and started");
 		cmdline_.print();
-		_UpQueues = (BlockingQueue<OrauldTuple>[]) new DisruptorBlockingQueue<?>[cmdline_._wrkNum];
-		_DnQueues = (BlockingQueue<OrauldTuple>[]) new DisruptorBlockingQueue<?>[cmdline_._wrkNum];
-		_WrkRunnables = new OrauldWrkRunnable[cmdline_._wrkNum];
-		_WrkThreads = new Thread[cmdline_._wrkNum];
+        BlockingQueue<OrauldTuple>[] _UpQueues = (BlockingQueue<OrauldTuple>[]) new DisruptorBlockingQueue<?>[cmdline_._wrkNum];
+        BlockingQueue<OrauldTuple>[] _DnQueues = (BlockingQueue<OrauldTuple>[]) new DisruptorBlockingQueue<?>[cmdline_._wrkNum];
+        OrauldWrkRunnable[] _WrkRunnables = new OrauldWrkRunnable[cmdline_._wrkNum];
+        Thread[] _WrkThreads = new Thread[cmdline_._wrkNum];
 		for (int i = 0; i < cmdline_._wrkNum; ++i) {
-			_UpQueues[i] = new DisruptorBlockingQueue<OrauldTuple>(2000);
-			_DnQueues[i] = new DisruptorBlockingQueue<OrauldTuple>(2000);
+			_UpQueues[i] = new DisruptorBlockingQueue<>(2000);
+			_DnQueues[i] = new DisruptorBlockingQueue<>(2000);
 		}
 
-		_DmpRunnable = new OrauldDmpRunnable(_UpQueues, _DnQueues);
-		_DmpThread = new Thread(_DmpRunnable, "DUMP");
+        OrauldDmpRunnable _DmpRunnable = new OrauldDmpRunnable(_UpQueues, _DnQueues);
+        Thread _DmpThread = new Thread(_DmpRunnable, "DUMP");
 		_DmpThread.start();
 
 		for (int i = 0; i < cmdline_._wrkNum; ++i) {
@@ -78,6 +86,25 @@ public class OrauldMain {
 		mgr_.closeResource();
 		ticker_.tickEnd(mgr_._sqlCnt);
 		P(INF, "%s cnt term pfm %d %.3f %d", cmdline_._bcpFnm, ticker_._recNum, ticker_._term, ticker_._pfm);
-		System.exit(rc_);
+		P(INF, "output file %s closed at %d rows", cmdline_._bcpFnm, ticker_._recNum);
+		_printLogFile(cmdline_, ticker_);
+		return rc_;
+	}
+
+	private static void _printLogFile(OrauldCmdline _cmdline, AppTicker ticker_) throws Exception {
+		if (PubMethod.IsEmpty(_cmdline._logFile)) {
+			return;
+		}
+		FileOutputStream fos_ = new FileOutputStream(_cmdline._logFile);
+		OutputStreamWriter osw_ = new OutputStreamWriter(fos_, _cmdline._charset);
+		PrintWriter pw_ = new PrintWriter(osw_);
+		pw_.printf("output file %s closed at %d rows", _cmdline._bcpFnm, ticker_._recNum);
+		pw_.flush();
+		pw_.close();
+	}
+
+	// 保持原有的main方法不变
+	public static void main(String[] args) throws Exception {
+		System.exit(run(args));
 	}
 }
