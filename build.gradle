@@ -3,6 +3,11 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
+// 添加项目的基本信息
+group = 'github.peihanw'
+version = '1.0.0' // 根据需要调整版本号
+// artifactId 默认使用项目目录名，也可以显式指定（见下方说明）
+
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
 
@@ -38,6 +43,11 @@ jar {
     manifest {
         attributes 'Main-Class': 'github.peihanw.orauld.OrauldMain'
     }
+}
+
+// 显式指定 artifactId（而不是使用默认的目录名）
+base {
+    archivesName = 'orauld'
 }
 
 build.dependsOn copyProperties
