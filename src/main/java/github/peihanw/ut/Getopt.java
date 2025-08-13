@@ -422,7 +422,7 @@ public class Getopt extends Object {
 	/**
 	 * The localized strings are kept in a separate file
 	 */
-	private ResourceBundle _messages = ResourceBundle.getBundle("github/peihanw/ut/MessagesBundle", Locale.US); // Locale.getDefault());
+	private ResourceBundle _messages = ResourceBundle.getBundle("MessagesBundle", Locale.US); // Locale.getDefault());
 
 	/**
 	 * ***********************************************************************
@@ -693,8 +693,6 @@ public class Getopt extends Object {
 	 * Check to see if an option is a valid long option. Called by getopt(). Put in a separate method because this needs to be done
 	 * twice. (The C getopt authors just copy-pasted the code!).
 	 *
-	 * @param longind
-	 *            A buffer in which to store the 'val' field of found LongOpt
 	 *
 	 * @return Various things depending on circumstances
 	 */
@@ -766,7 +764,7 @@ public class Getopt extends Object {
 							System.err.println(MessageFormat.format(_messages.getString("getopt.arguments1"), msgArgs));
 						} // +option or -option
 						else {
-							Object[] msgArgs = { progname, new Character(argv[optind - 1].charAt(0)).toString(), pfound.name };
+							Object[] msgArgs = { progname, Character.toString(argv[optind - 1].charAt(0)), pfound.name };
 							System.err.println(MessageFormat.format(_messages.getString("getopt.arguments2"), msgArgs));
 						}
 					}
@@ -946,7 +944,7 @@ public class Getopt extends Object {
 						Object[] msgArgs = { progname, nextchar };
 						System.err.println(MessageFormat.format(_messages.getString("getopt.unrecognized"), msgArgs));
 					} else {
-						Object[] msgArgs = { progname, new Character(argv[optind].charAt(0)).toString(), nextchar };
+						Object[] msgArgs = { progname, Character.toString(argv[optind].charAt(0)), nextchar };
 						System.err.println(MessageFormat.format(_messages.getString("getopt.unrecognized2"), msgArgs));
 					}
 				}
@@ -980,10 +978,10 @@ public class Getopt extends Object {
 			if (opterr) {
 				if (posixly_correct) {
 					// 1003.2 specifies the format of this message
-					Object[] msgArgs = { progname, new Character((char) c).toString() };
+					Object[] msgArgs = { progname, Character.toString((char) c)};
 					System.err.println(MessageFormat.format(_messages.getString("getopt.illegal"), msgArgs));
 				} else {
-					Object[] msgArgs = { progname, new Character((char) c).toString() };
+					Object[] msgArgs = { progname, Character.toString((char) c)};
 					System.err.println(MessageFormat.format(_messages.getString("getopt.invalid"), msgArgs));
 				}
 			}
@@ -1001,7 +999,7 @@ public class Getopt extends Object {
 			else if (optind == argv.length) {
 				if (opterr) {
 					// 1003.2 specifies the format of this message.
-					Object[] msgArgs = { progname, new Character((char) c).toString() };
+					Object[] msgArgs = { progname, Character.toString((char) c)};
 					System.err.println(MessageFormat.format(_messages.getString("getopt.requires2"), msgArgs));
 				}
 
@@ -1048,7 +1046,7 @@ public class Getopt extends Object {
 				} else if (optind == argv.length) {
 					if (opterr) {
 						// 1003.2 specifies the format of this message
-						Object[] msgArgs = { progname, new Character((char) c).toString() };
+						Object[] msgArgs = { progname, Character.toString((char) c)};
 						System.err.println(MessageFormat.format(_messages.getString("getopt.requires2"), msgArgs));
 					}
 
@@ -1072,7 +1070,7 @@ public class Getopt extends Object {
 						if (optind == argv.length) {
 							if (opterr) {
 								// 1003.2 specifies the format of this message
-								Object[] msgArgs = { progname, new Character((char) c).toString() };
+								Object[] msgArgs = { progname, Character.toString((char) c)};
 								System.err.println(MessageFormat.format(_messages.getString("getopt.requires2"), msgArgs));
 							}
 
