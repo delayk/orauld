@@ -7,7 +7,6 @@ ant-build/
 build/
 dist/
 gradle/
-lib/
 nbproject/
 test/
 bin/
