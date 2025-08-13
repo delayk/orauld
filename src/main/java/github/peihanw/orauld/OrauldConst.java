@@ -9,6 +9,7 @@ public class OrauldConst {
 	public static final int EXIT_CODE_3_IMBALANCE = 3;
 	public static final int EXIT_CODE_4_EXCEPTION = 4;
 
+	public static final int ORA_TYPE_M3_VARBINARY = -3;
 	public static final int ORA_TYPE_M8_ROWID = -8;
 	public static final int ORA_TYPE_M101_TIMESTAMPTZ = -101;
 	public static final int ORA_TYPE_M102_TIMESTAMPTZL = -102;

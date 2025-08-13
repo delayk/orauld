@@ -226,6 +226,9 @@ public class OrauldMgr {
 			break;
 		case OrauldConst.ORA_TYPE_2004_BLOB: // always regard as NULL for BLOB (can not support)
 			break;
+		case OrauldConst.ORA_TYPE_M3_VARBINARY:
+			tuple._bytes[idx] = rs.getBytes(idx);
+			break;
 		default:
 			byte[] bytes_ = rs.getBytes(idx);
 			if (bytes_ != null) {
