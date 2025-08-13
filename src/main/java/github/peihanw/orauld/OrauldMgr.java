@@ -85,28 +85,66 @@ public class OrauldMgr {
 	}
 
 	private void _exec() throws Exception {
+		long startTime = System.currentTimeMillis();
+		P(INF, "Starting _exec() method execution");
+
 		_stmt = _conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 		_stmt.setFetchSize(1000);
 		((OracleStatement) _stmt).setRowPrefetch(1000);
+
+		long queryStartTime = System.currentTimeMillis();
+		P(INF, "Executing query: %s", _cmdline._querySql);
 		_rs = _stmt.executeQuery(_cmdline._querySql);
-		P(INF, "query executed, fetchSize=%d, maxRows=%d", _stmt.getFetchSize(), _stmt.getMaxRows());
+		long queryEndTime = System.currentTimeMillis();
+		P(DBG, "Query executed in %d ms, fetchSize=%d, maxRows=%d",
+				queryEndTime - queryStartTime, _stmt.getFetchSize(), _stmt.getMaxRows());
+
 		_meta = _rs.getMetaData();
 		_printMeta();
+
 		if (!PubMethod.IsEmpty(_cmdline._bcpFnm)) {
 			int column_cnt_ = _columnTypes.length - 1;
 			OrauldTuple tuple_;
+
+			long processingStartTime = System.currentTimeMillis();
+			long totalProcessingTime = 0;
+			long totalDbTime = 0;
+			long totalQueueTime = 0;
+			long rowCount = 0;
+
 			while (_rs.next()) {
+				long rowStartTime = System.currentTimeMillis();
 				tuple_ = new OrauldTuple(column_cnt_);
+
 				for (int i = 1; i <= column_cnt_; i++) {
 					_fillTuple(tuple_, _rs, i);
 				}
+				long dbProcessingEndTime = System.currentTimeMillis();
+				totalDbTime += (dbProcessingEndTime - rowStartTime);
+
 				int idx_ = (int) (_sqlCnt % _upQueues.length);
 				_upQueues[idx_].offer(tuple_, _cmdline._queueOfferTimeout, TimeUnit.SECONDS);
+				long rowEndTime = System.currentTimeMillis();
+
+				totalQueueTime += (rowEndTime - dbProcessingEndTime);
+				totalProcessingTime += (rowEndTime - rowStartTime);
 				_sqlCnt++;
+				rowCount++;
 			}
+
+			long processingEndTime = System.currentTimeMillis();
+			P(INF, "Data processing completed in %d ms for %d rows. Total processing time: %d ms (DB: %d ms, Queue: %d ms)",
+					processingEndTime - processingStartTime,
+					rowCount,
+					rowCount > 0 ? totalProcessingTime : 0,
+					rowCount > 0 ? totalDbTime : 0,
+					rowCount > 0 ? totalQueueTime : 0);
 		}
+
 		_emitEOF();
-		P(INF, "%d EOF tuple emitted, _sqlCnt=%d", _upQueues.length, _sqlCnt);
+		long endTime = System.currentTimeMillis();
+		P(DBG, "%d EOF tuple emitted, _sqlCnt=%d, Total _exec() time: %d ms",
+				_upQueues.length, _sqlCnt, endTime - startTime);
 	}
 
 	private void _emitEOFwithoutThrow() {
@@ -144,7 +182,32 @@ public class OrauldMgr {
 		}
 		_cmdline._headerLine = sb_.substring(0);
 		OrauldWrkRunnable._ColumnTypes = _columnTypes;
+
+		// 确保即使结果为空也创建空文件
+		_createEmptyFileIfRequired();
 		_printCtl();
+	}
+
+	private void _createEmptyFileIfRequired() throws Exception {
+		// 如果指定了bcp文件名，则创建一个空文件（包含头部）
+		if (!PubMethod.IsEmpty(_cmdline._bcpFnm)) {
+			File bcpFile = new File(_cmdline._bcpFnm);
+			// 创建父目录（如果不存在）
+			bcpFile.getParentFile().mkdirs();
+
+			// 创建空文件并写入头部行（如果需要）
+			FileOutputStream fos = new FileOutputStream(bcpFile);
+			OutputStreamWriter osw = new OutputStreamWriter(fos, _cmdline._charset);
+			PrintWriter pw = new PrintWriter(osw);
+
+			if (_cmdline._header && !PubMethod.IsEmpty(_cmdline._headerLine)) {
+				pw.println(_cmdline._headerLine);
+			}
+
+			pw.flush();
+			pw.close();
+			P(INF, "Created empty BCP file: %s", _cmdline._bcpFnm);
+		}
 	}
 
 	private void _printCtl() throws Exception {

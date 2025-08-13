@@ -1,5 +1,6 @@
 package github.peihanw.orauld;
 
+import java.io.BufferedWriter;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -76,6 +77,10 @@ public class OrauldDmpRunnable implements Runnable {
 			P(WRN, e, "encounter exception, _dmpCnt=%d, re-throw as RuntimeException", _dmpCnt);
 			throw new RuntimeException(e);
 		} finally {
+			// 在关闭前确保所有缓冲数据写入磁盘
+			if (_pw != null) {
+				_pw.flush();
+			}
 			PubMethod.Close(_pw);
 		}
 		P(INF, "thread ended, _dmpCnt=%d", _dmpCnt);
@@ -116,6 +121,12 @@ public class OrauldDmpRunnable implements Runnable {
 		_pw.print(_eor);
 		_dmpCnt++;
 		_splitCnt++;
+
+		// 每1000行刷新一次缓冲区，减少磁盘I/O操作
+		if (_dmpCnt % 1000 == 0) {
+			_pw.flush();
+		}
+
 		if (_dmpCnt % 100000 == 0) {
 			P(DBG, "%,d records dumped", _dmpCnt);
 		}
@@ -140,12 +151,14 @@ public class OrauldDmpRunnable implements Runnable {
 			bcp_fnm_ = pfx_ + seq_ + sfx_;
 		}
 		FileOutputStream fos_ = new FileOutputStream(bcp_fnm_);
-		OutputStreamWriter osw_;
-		osw_ = new OutputStreamWriter(fos_, _cmdline._charset);
-		_pw = new PrintWriter(osw_);
+		OutputStreamWriter osw_ = new OutputStreamWriter(fos_, _cmdline._charset);
+		// 增加缓冲区大小，例如 64KB
+		_pw = new PrintWriter(new BufferedWriter(osw_, 65536));
 		P(INF, "%s opened for writing, charset [%s]", bcp_fnm_, _cmdline._charset);
 		if (_cmdline._header) {
 			_pw.println(_cmdline._headerLine);
+			// 强制刷新头部信息到磁盘
+			_pw.flush();
 		}
 	}
 }

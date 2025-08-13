@@ -126,7 +126,7 @@ public class LongOpt extends Object {
 	public LongOpt(String name, int has_arg, StringBuffer flag, int val) throws IllegalArgumentException {
 		// Validate has_arg
 		if ((has_arg != NO_ARGUMENT) && (has_arg != REQUIRED_ARGUMENT) && (has_arg != OPTIONAL_ARGUMENT)) {
-			Object[] msgArgs = { new Integer(has_arg).toString() };
+			Object[] msgArgs = {Integer.toString(has_arg)};
 			throw new IllegalArgumentException(MessageFormat.format(_messages.getString("getopt.invalidValue"), msgArgs));
 		}
 
