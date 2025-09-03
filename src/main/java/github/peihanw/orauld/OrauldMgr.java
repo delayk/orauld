@@ -157,11 +157,11 @@ public class OrauldMgr {
 
 	private void _emitEOF() throws Exception {
 		OrauldTuple tuple_ = null;
-		for (int i = 0; i < _upQueues.length; ++i) {
-			tuple_ = new OrauldTuple(1);
-			tuple_._idx = -1;
-			_upQueues[i].offer(tuple_, _cmdline._queueOfferTimeout, TimeUnit.SECONDS);
-		}
+        for (BlockingQueue<OrauldTuple> upQueue : _upQueues) {
+            tuple_ = new OrauldTuple(1);
+            tuple_._idx = -1;
+            upQueue.offer(tuple_, _cmdline._queueOfferTimeout, TimeUnit.SECONDS);
+        }
 	}
 
 	private void _printMeta() throws Exception {
@@ -180,7 +180,7 @@ public class OrauldMgr {
 		if (!PubMethod.IsEmpty(_cmdline._eorStr)) {
 			sb_.append(_cmdline._eorStr);
 		}
-		_cmdline._headerLine = sb_.substring(0);
+		_cmdline._headerLine = sb_.toString();
 		OrauldWrkRunnable._ColumnTypes = _columnTypes;
 
 		// 确保即使结果为空也创建空文件
@@ -192,8 +192,15 @@ public class OrauldMgr {
 		// 如果指定了bcp文件名，则创建一个空文件（包含头部）
 		if (!PubMethod.IsEmpty(_cmdline._bcpFnm)) {
 			File bcpFile = new File(_cmdline._bcpFnm);
-			// 创建父目录（如果不存在）
-			bcpFile.getParentFile().mkdirs();
+			File parentDir = bcpFile.getParentFile();
+			// 如果父目录不存在，创建目录
+			if (parentDir != null && !parentDir.exists()) {
+				if (!parentDir.mkdirs()) {
+					P(WRN, "Failed to create parent directories for: %s", _cmdline._bcpFnm);
+				} else {
+					P(INF, "Created parent directories for: %s", _cmdline._bcpFnm);
+				}
+			}
 
 			// 创建空文件并写入头部行（如果需要）
 			FileOutputStream fos = new FileOutputStream(bcpFile);

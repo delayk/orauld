@@ -53,7 +53,7 @@ public class OrauldTuple {
 	}
 
 	public boolean isEOF() {
-		return _idx < 0 ? true : false;
+		return _idx < 0;
 	}
 
 	public String join(StringBuilder sb, int[] column_types, String delimiter, boolean trim) throws SQLException {

@@ -123,7 +123,7 @@ public class OrauldDmpRunnable implements Runnable {
 		_splitCnt++;
 
 		// 每1000行刷新一次缓冲区，减少磁盘I/O操作
-		if (_dmpCnt % 1000 == 0) {
+		if (_dmpCnt % 5000 == 0) {
 			_pw.flush();
 		}
 
@@ -152,12 +152,11 @@ public class OrauldDmpRunnable implements Runnable {
 		}
 		FileOutputStream fos_ = new FileOutputStream(bcp_fnm_);
 		OutputStreamWriter osw_ = new OutputStreamWriter(fos_, _cmdline._charset);
-		// 增加缓冲区大小，例如 64KB
-		_pw = new PrintWriter(new BufferedWriter(osw_, 65536));
+		// 增大缓冲区到128KB，并使用更大的刷新间隔
+		_pw = new PrintWriter(new BufferedWriter(osw_, 131072)); // 128KB缓冲区
 		P(INF, "%s opened for writing, charset [%s]", bcp_fnm_, _cmdline._charset);
 		if (_cmdline._header) {
 			_pw.println(_cmdline._headerLine);
-			// 强制刷新头部信息到磁盘
 			_pw.flush();
 		}
 	}
